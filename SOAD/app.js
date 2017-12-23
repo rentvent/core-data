@@ -2,7 +2,7 @@ const express = require("express");
 const request = require("request-promise");
 const AWS = require("aws-sdk");
 const uuid = require("uuid");
-
+AWS.config.loadFromPath('config.json');
 let app = express();
 
 //setup  region 
@@ -49,11 +49,12 @@ app.get('/', function (req, res) {
                 var obj = {};
                 for (i in data) {
                     obj[i] = data[i];
+                //    consol.log(data);
                 }
-
+                 
                 //Add the Unique ID which is the PK in Dynamo DB and we dont recive any unique data from SODA 
                 obj.ID = uuid.v1();
-
+        
                 var params = {
                     TableName: "Soda_Data",
                     Item: obj
