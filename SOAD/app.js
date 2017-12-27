@@ -14,7 +14,7 @@ const DynamoDB = new AWS.DynamoDB.DocumentClient();
 
 let GetSodaData = function () {
     return request({
-        url: 'https://data.cityofgainesville.org/resource/s829-win5.json',
+        url: 'https://data.lacounty.gov/resource/7rjj-f2pv.json',
         headers: {
             'X-App-Token': 'hcNtgiqH88arSbAbOYTMoU5Nv',
             'Content-type': 'application/json'
@@ -55,7 +55,7 @@ app.get('/', function (req, res) {
                 obj.ID = uuid.v1();
 
                 var params = {
-                    TableName: "Soda_Data",
+                    TableName: "open_data",
                     Item: obj
                 };
                 //Pull data In Daynamo 
