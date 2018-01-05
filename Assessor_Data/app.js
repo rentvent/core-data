@@ -8,8 +8,8 @@ AWS.config.update({ region: 'us-east-1' });
 const dynamo = new AWS.DynamoDB.DocumentClient({ convertEmptyValues: true });
 
 // ** Set up variables here ********************************
-const csv_filename = 'chunk-2500-v2.csv';
-const table_name = 'Assessor_Data';
+const csv_filename = '/Users/ad/Workspace/core-data/Assessor_Data/chunk-2500-v2.csv';
+const table_name = 'Accesor_Staging';
 
 // additional properties to be included
 const is_dynamic = 'true';
