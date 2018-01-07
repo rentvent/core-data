@@ -1,15 +1,15 @@
-const express = require("express");
+
 const request = require("request-promise");
 const AWS = require("aws-sdk");
-const uuid = require("uuid");
+const async = require('async');
+let itemCount = 0;
+let chunkNo = 0;
 
-let app = express();
-
-//setup  region 
+//setup  region
 AWS.config.update({
     region: "us-east-1"
 });
-
+let jobStack = [];  // a stack of request parameters for batchWrites
 const DynamoDB = new AWS.DynamoDB.DocumentClient();
 
 let GetSodaData = function () {
@@ -24,57 +24,52 @@ let GetSodaData = function () {
     });
 }
 
-let PullData = function (data) {
-    DynamoDB.put(data, function (err, data) {
-        if (err) {
-            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-        } else {
-            console.log("Added item:", JSON.stringify(data, null, 2));
-        }
-    });
+let ProcessData = function () {
 
+
+    GetSodaData().then(function (response) {
+        //const response = await GetSodaData();
+        let json = JSON.parse(response);
+
+
+        while (json.length > 0) {
+
+            const params = {
+                RequestItems: {
+                    ['Open_Data']: []
+                }
+            }
+
+
+            json.splice(0, 25).forEach(function (data) {
+
+                data.ain = parseInt(data.ain);
+                params.RequestItems['Open_Data'].push({
+                    PutRequest: {
+                        Item: data
+                    }
+                });
+
+                itemCount++;
+            });
+
+            jobStack.push(params);  // push this job to the stack
+            chunkNo++;
+
+        }
+
+        async.each(jobStack, (params, callback) => {
+            DynamoDB.batchWrite(params, callback);
+        }, (err) => {
+            if (err) {
+                console.log(`Chunk #${chunkNo} write unsuccessful: ${err.message}`);
+            } else {
+                console.log('\nImport operation completed! Do double check on DynamoDB for actual number of items stored.');
+                console.log(`Total batchWrite requests issued: ${chunkNo}`);
+                console.log(`Total valid items processed: ${itemCount}`);
+            }
+        });
+    });
 }
 
-app.get('/', function (req, res) {
-
-    try {
-        GetSodaData().then(function (response) {
-            //const response = await GetSodaData();
-            let json = JSON.parse(response);
-
-            Object.keys(json).forEach(function (i, callback) {
-
-                var data = json[i];
-                //object will be coulm name and column value as it is a dynamic returned data
-                var obj = {};
-                for (i in data) {
-                    obj[i] = data[i];
-                }
-
-                //Add the Unique ID which is the PK in Dynamo DB and we dont recive any unique data from SODA 
-                obj.ID = uuid.v1();
-
-                var params = {
-                    TableName: "open_data",
-                    Item: obj
-                };
-                //Pull data In Daynamo 
-                PullData(params);
-            });
-            res.send("Success");
-        });
-    } catch (err) {
-        res.send(err);
-    }
-});
-
-
-
-app.listen(3000, function () {
-    console.log('Example app listening on port 3000!');
-});
-
-
-
-
-
+ProcessData();
