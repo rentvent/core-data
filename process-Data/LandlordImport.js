@@ -38,6 +38,13 @@ let ProcessData = function () {
                     };
 
                     data.Items.splice(0, max_reqs).forEach((element) => {
+
+
+                        var str =element.Properties;
+                        var newstr = str.replace(new RegExp( 'p_id', 'g'), '"p_id"');
+                        var jsonObj = JSON.parse(newstr);
+
+
                         var LandlordObj = {
                             'L_ID': uuid.v1(),
                             'L_Full_Name': element["First Owner Assessee Name"],
@@ -48,7 +55,7 @@ let ProcessData = function () {
                             'L_County': "Los Angeles",
                             'L_State': element["Mail Address City and State"],
                             'L_Country': "USA",
-                            'L_Properties': element.Properties ,
+                            'L_Properties': jsonObj ,
                             'L_Created_By': "Data_Import",
                             'L_Updated_By': "Data_Import",
                             'L_Created_On':  date.format(new Date(), 'DD-MM-YYYY') ,

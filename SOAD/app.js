@@ -14,7 +14,7 @@ const DynamoDB = new AWS.DynamoDB.DocumentClient();
 
 let GetSodaData = function () {
     return request({
-        url: 'https://data.lacounty.gov/resource/7rjj-f2pv.json',
+        url: 'https://data.lacounty.gov/resource/7rjj-f2pv.json?$limit=50000',
         headers: {
             'X-App-Token': 'hcNtgiqH88arSbAbOYTMoU5Nv',
             'Content-type': 'application/json'
@@ -57,12 +57,15 @@ let ProcessData = function () {
             chunkNo++;
 
         }
-
+    var  issuedPram ;
         async.each(jobStack, (params, callback) => {
             DynamoDB.batchWrite(params, callback);
+            issuedPram =params ;
         }, (err) => {
             if (err) {
+
                 console.log(`Chunk #${chunkNo} write unsuccessful: ${err.message}`);
+                console.log(issuedPram);
             } else {
                 console.log('\nImport operation completed! Do double check on DynamoDB for actual number of items stored.');
                 console.log(`Total batchWrite requests issued: ${chunkNo}`);
